@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1 style="text-align: center">태양광 발전량 예측</h1>
+    <div>
+        <h3 style="text-align: center">우리집에 태양광 패널을 설치한다면 전기세를 얼마나 아낄 수 있을까?</h3>
+    </div>
+
+    <form method="post" style="text-align: center">
+        <label for="month">월</label>
+        <br>
+        <input type="text" name="month"
+               placeholder="1"
+               value="{{request.form['month']}}"></input>
+        <br><br>
+
+        <label for="gen">월 사용량(kWh)</label>
+        <br>
+        <input type="text" name="usage"
+               placeholder="300"
+               value="{{request.form['usage']}}"></input>
+        <br><br>
+
+        <label for="cap">발전용량(kW)</label>
+        <br>
+        <input type="text" name="capacity"
+               placeholder="3"
+               value="{{request.form['capacity']}}"></input>
+        <br><br>
+
+
+        <button type="submit">Submit</button>    
+    </form>
+
+    <br>
+    <div style="font-size:13px; text-align: center; padding:10px">
+        부산 지역 연간 평균 전기 사용량: 약 239kWh, 25330원
+        <br>
+        <a href="https://bigdata.kepco.co.kr/cmsmain.do?scode=S01&pcode=000171&pstate=L&redirect=Y">
+            (※ 전력데이터 개방 포털시스템, 2021년)
+        </a>
+    </div>
+{% endblock %}
+229 250

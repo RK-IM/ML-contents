@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>얼마나 할인됐나?</h1>
+    <br>현재 사용량: {{ curr_usage }} kWh / 월
+    <br>예상 생산량: {{ generated_power }} kWh / 월
+    <br>현재 전기세: {{ current_payment }} 원
+    <br>예상 전기세: {{ reduced_payment }} 원
+    <br>{{month}}월, 가정용 태양광 발전기로 {{ saved_money }}원 만큼 아낄 수 있습니다.
+
+    <br><br>
+{% endblock %}

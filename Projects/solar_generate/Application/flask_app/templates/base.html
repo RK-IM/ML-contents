@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>가정용 태양광 발전</title>
+    <style>
+        .message {
+            padding: 10px;
+            margin: 5px;
+            background-color: #f3f3f3
+        }
+        nav a {
+            color: #876813;
+            font-size: 2em;
+            margin-left: 50px;
+            text-decoration: none
+        }
+
+        .alert {
+            padding: 20px;
+            margin: 5px;
+            color: #970020;
+            background-color: #ffd5de;
+        }
+    </style>
+    <link rel="short icon" href="#">
+</head>
+<body>
+    <nav>
+        <a href="{{ url_for('index') }}">홈</a>
+        <a href="{{ url_for('predict') }}">발전량</a>
+        <a href="https://solar-usage-metabase.herokuapp.com/public/dashboard/b41c6ef7-a909-427b-8b56-c07af1285cce">대시보드</a>
+    </nav>
+    <hr>
+    <div class="content">
+        {% for message in get_flashed_messages() %}
+            <div class="alert">{{ message }}</div>
+        {% endfor %}
+        {% block content %} {% endblock %}
+    </div>
+</body>
+</html>

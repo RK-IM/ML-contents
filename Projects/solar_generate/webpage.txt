@@ -1,0 +1,8 @@
+App site
+https://solar-usage-payment.herokuapp.com/
+
+Git site
+https://git.heroku.com/solar-usage-payment.git
+
+Dash board
+https://solar-usage-metabase.herokuapp.com/public/dashboard/b41c6ef7-a909-427b-8b56-c07af1285cce
