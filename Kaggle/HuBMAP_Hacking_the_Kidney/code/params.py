@@ -1,0 +1,21 @@
+import torch
+from pathlib import Path
+
+
+DATA_PATH = Path('../data/')
+TRAIN_PATH = DATA_PATH / 'train'
+TRAIN_CSV = DATA_PATH / 'train.csv'
+TILE_PATH = DATA_PATH / 'tiles'
+
+WINDOW = 1024
+OVERLAP = 128
+REDUCE = 4
+
+PIXEL_S_LIMIT = (40, 220)
+PIXEL_THRESHOLD = 0.05
+
+N_SPLITS = 5
+IMAGE_CSV = DATA_PATH / f'df_fold_{WINDOW}_{OVERLAP}.csv'
+
+MEAN = [0.63279241, 0.46098109, 0.67925897]
+STD = [0.16051098, 0.22319452, 0.14090695]
