@@ -5,34 +5,37 @@ This will be the directories of final result. Because of large size of original 
 ```
 ./  
 ├─ code/  
-│  ├─ params.py  
-│  ├─ dataset.py  
-│  ├─ models.py  
-│  ├─ train.py  
-│  ├─ main.py  
-│  ├─ utils.py  
-│  ├─ slice_images.ipynb  
-│  └─ training.ipynb  
+│  ├─ params.py                    # Parameters for slicing images and training  
+│  ├─ dataset.py                   # Pytorch dataset and Albumentation transforms  
+│  ├─ models.py                    # Segmentation models pytorch  
+│  ├─ train.py                     # Pytorch model Trainer
+│  ├─ main.py                      # Declare dataset, dataloader, model etc.
+│  ├─ utils.py                     # Encode/Decode rle, slicing, metric, save function etc.
+│  ├─ slice_images.ipynb           # Notebook for slicing original tiff files to smaller tiles
+│  └─ training.ipynb               # Notebook for training model with multiple folds.
 │  
 ├─ data/  
-│  ├─ train/  
+│  ├─ train/                       # Original tiff files for training
 │  │  └─ tiff files  
-│  ├─ test/  
+│  ├─ test/                        # Original tiff files for test
 │  │  └─ tiff files  
 │  └─ tiles/  
-│     ├─ image_id/  
-│     │  ├─ images/  
-│     │  │  └─ sliced images  
-│     │  └─ masks/  
+│     ├─ image_id/                 # Each id is from tiff file names
+│     │  ├─ images/                # Sliced images and sliced masks in this directories.
+│     │  │  └─ sliced images       # Same index of image and mask are pair 
+│     │  └─ masks/                 # index is second part of image/mask file name.
 │     │     └─ sliced masks  
 │     ├─ image_id/  
 │     ├─ ...  
 │  
-└─ logs/  
-   ├─ date/  
-   │  ├─ best_model.pth  
-   │  ├─ config.json  
-   │  ├─ results.txt  
+└─ logs/                           # Log files
+   ├─ date/
+   │  ├─ experience_0/
+   │  │  ├─ best_model.pth         # Trained model weights with best validation loss and dice score for each fold
+   │  │  ├─ config.json            # parameters for training
+   │  │  └─ results.txt            # results of training. fold, epoch, phase, loss, dice are saved.
+   │  ├─ experience_1/
+   │  ├─ ...
    ├─ date/  
    ├─ ...
 ```
