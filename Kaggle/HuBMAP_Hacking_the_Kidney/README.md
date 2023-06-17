@@ -31,7 +31,8 @@ This will be the directories of final result. Because of large size of original 
 └─ logs/                           # Log files
    ├─ date/
    │  ├─ experience_0/
-   │  │  ├─ best_model.pth         # Trained model weights with best validation loss and dice score for each fold
+   │  │  ├─ best_model.pth         # Trained model weights with
+   │  │  │                         # best validation loss and dice score for each fold
    │  │  ├─ config.json            # parameters for training
    │  │  └─ results.txt            # results of training. fold, epoch, phase, loss, dice are saved.
    │  ├─ experience_1/
@@ -39,3 +40,5 @@ This will be the directories of final result. Because of large size of original 
    ├─ date/  
    ├─ ...
 ```
+
+![image](https://github.com/RK-IM/ML-contents/assets/94027045/9a790105-ff95-4a66-ae62-06435ea81ff0)
