@@ -1,12 +1,17 @@
+import os
+import random
+import json
+import torch
+
 import cv2
 import numpy as np
 import rasterio
 from rasterio.windows import Window
 
 
-####################
-######## RLE #######
-####################
+###############
+##### RLE #####
+###############
 def rle_decode(enc, shape):
     img = np.zeros(np.prod(shape), dtype=np.uint8)
     enc = enc.split()
@@ -38,9 +43,9 @@ def rle_encode_less_memory(mask):
     return ' '.join(str(x) for x in enc)
     
 
-####################
-### Image process ##
-####################
+#########################
+##### Image process #####
+#########################
 def make_slices(dataset, window=1024, overlap=128):
     x, y = dataset.shape
     nx = x // (window - overlap) + 1
@@ -106,5 +111,31 @@ def dice(out, true, threshold=0.5):
     pr = pred.sum()
     gt = true.sum()
     intersection = (pred * true).sum()
-
     return (2 * intersection / (pr + gt)).item()
+
+
+#############################
+###### Reproducibility ######
+#############################
+def seed_everything(seed):
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+
+def seed_worker(worker_id):
+    worker_seed = torch.initial_seed() % 2**32
+    np.random.seed(worker_seed)
+    random.seed(worker_seed)
+
+
+def save_config(config, path):
+    dic = config.__dict__.copy()
+    del dic["__doc__"], dic["__module__"], dic["__dict__"], dic["__weakref__"]
+
+    with open(path, 'w') as f:
+        json.dump(dic, f)
