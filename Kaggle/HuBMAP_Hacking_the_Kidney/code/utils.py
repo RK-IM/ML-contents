@@ -1,6 +1,7 @@
 import os
 import random
 import json
+from pathlib import Path
 import torch
 
 import cv2
@@ -12,6 +13,7 @@ from rasterio.windows import Window
 ###############
 ##### RLE #####
 ###############
+
 def rle_decode(enc, shape):
     img = np.zeros(np.prod(shape), dtype=np.uint8)
     enc = enc.split()
@@ -46,6 +48,7 @@ def rle_encode_less_memory(mask):
 #########################
 ##### Image process #####
 #########################
+
 def make_slices(dataset, window=1024, overlap=128):
     x, y = dataset.shape
     nx = x // (window - overlap) + 1
@@ -106,6 +109,7 @@ def is_null_image(image,
 ####################
 ###### Metric ######
 ####################
+
 def dice(out, true, threshold=0.5):
     pred = out.sigmoid() > threshold
     pr = pred.sum()
@@ -117,6 +121,7 @@ def dice(out, true, threshold=0.5):
 #############################
 ###### Reproducibility ######
 #############################
+
 def seed_everything(seed):
     random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
@@ -131,6 +136,20 @@ def seed_worker(worker_id):
     worker_seed = torch.initial_seed() % 2**32
     np.random.seed(worker_seed)
     random.seed(worker_seed)
+
+
+#################
+###### Log ######
+#################
+
+def save_log(log_dir, fold, nb_splits, phase, epoch, loss, score):
+    log_dir = Path(log_dir + f'/results_fold_{fold}_{nb_splits}.txt')
+    if not log_dir.is_file():
+        with open(log_dir, 'w') as f:
+            f.write('fold,epoch,phase,loss,dice\n')
+    else:
+        with open(log_dir, 'a') as f:
+            f.write(f"{fold},{epoch},{phase},{loss},{score}\n")
 
 
 def save_config(config, path):
