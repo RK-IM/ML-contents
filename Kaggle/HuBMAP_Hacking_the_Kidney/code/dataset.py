@@ -9,7 +9,21 @@ from params import MEAN, STD, IMAGE_CSV
 
 
 class HuBDataset(Dataset):
+    """
+    Dataset for training and validation step
+    """
     def __init__(self, train=True, fold=0, transform=None):
+        """
+        Constructuor.
+
+        Args:
+            train (bool): Is dataset for tarin or validation.
+                Set False when validation. Defaults to True.
+            fold (int): Fold to train. Folds created in `slice_images.ipynb`
+                which is in same folder. Defaults to 0.
+            transform (albumentation transforms, optional): 
+                Apply transforms to images. Defaults to None, only apply ToTensor in albu.
+        """
         super().__init__()
         self.csv = pd.read_csv(IMAGE_CSV)
         self.train = train
@@ -26,6 +40,13 @@ class HuBDataset(Dataset):
 
     
     def __getitem__(self, idx):
+        """
+        Return one image and mask.
+
+        Returns:
+            image (torch.Tensor[channels, height, width])
+            maks (torch.Tensor[1, height, width])
+        """
         image_path = self.df.loc[idx, 'file_path']
         mask_path = image_path.replace('images', 'masks')
 
@@ -49,6 +70,14 @@ class HuBDataset(Dataset):
 
 
 def train_tfms(window=1024, reduce=4):
+    """
+    Transforms for train images. 
+    Reduce original images according to `reduce` parameter.
+
+    Args:
+        window (int): Original image size. Defaults to 1024.
+        reduce (int): Proportion to reduce. Defaults to 4.
+    """
     return A.Compose(
         [
             A.Resize(window//reduce, window//reduce),
@@ -90,6 +119,15 @@ def train_tfms(window=1024, reduce=4):
 
 
 def val_tfms(window=1024, reduce=4):
+    """
+    Transforms for validation images. 
+    Only apply `resize` and `Normalize`.
+    Reduce original images according to 'reduce' parameter.
+
+    Args:
+        window (int): Original image size. Defaults to 1024.
+        reduce (int): Proportion to reduce. Defaults to 4.
+    """
     return A.Compose(
         [
             A.Resize(window//reduce, window//reduce),
