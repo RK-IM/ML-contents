@@ -18,7 +18,7 @@ def main(config):
         config (Config): Training parameters
     """
     for fold in config.fold:
-        print(f":::  Fold {fold} / {config.nb_splits}  :::")
+        print(f":::  Fold {fold+1} / {config.nb_splits}  :::")
 
         train_ds = HuBDataset(train=True, fold=fold, 
                             transform=train_tfms(window=config.window, reduce=config.reduce))
