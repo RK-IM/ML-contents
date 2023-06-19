@@ -158,3 +158,18 @@ def save_config(config, path):
 
     with open(path, 'w') as f:
         json.dump(dic, f)
+
+
+##################
+###### Load ######
+##################
+
+def load_models(model, weight_list, device='cuda'):
+    models = []
+    for weight_path in weight_list:
+        state = torch.load(weight_path, map_location=device)
+        model.load_state_dict(state)
+        model.to(device)
+        model.eval()
+        models.append(model)
+    return models
