@@ -1,5 +1,7 @@
 https://www.kaggle.com/competitions/hubmap-kidney-segmentation/overview
 
+![preview](https://github.com/RK-IM/ML-contents/assets/94027045/acc25ef6-fadb-42da-b5c2-a1fe5ef83e4f)
+
 This will be the directories of final result. Because of large size of original tiff files, first split every file into certain size of images. If run codes in `slice_images.ipynb`, the sliced images will saved at each tiff file id folder, which is under `tiles` folder.  
 `training.ipynb` in code directory runs the training and validation of model by multiple folds. For each trials, config( the parameters for training is in), best model weights(best validation loss and best dice score each), and results are saved in `logs` folder.   
 ```
