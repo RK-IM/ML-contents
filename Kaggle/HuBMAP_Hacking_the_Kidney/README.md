@@ -1,4 +1,5 @@
 https://www.kaggle.com/competitions/hubmap-kidney-segmentation/overview
+This competition was detecting glomeruli FTU. The datasets are 15 tiff files, one csv file which has rle labels for each tiff file, and 5 test tiff files. The target metric is dice score.
 
 ![preview](https://github.com/RK-IM/ML-contents/assets/94027045/acc25ef6-fadb-42da-b5c2-a1fe5ef83e4f)
 
