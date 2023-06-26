@@ -82,7 +82,7 @@ class VOCDataset(Dataset):
     def _label_convert(self, class_ids, bboxes):
         label_matrix = torch.zeros((self.S, self.S, self.C + 5 * self.B))
         for class_id, bbox in zip(class_ids, bboxes):
-            xmin, ymin, xmax, ymax = map(lambda x: x/448, bbox)
+            xmin, ymin, xmax, ymax = map(lambda x: x/self.size, bbox)
 
             x_center = (xmin + xmax) / 2
             x_grid = int(self.S * x_center)
