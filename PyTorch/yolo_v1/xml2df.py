@@ -4,12 +4,12 @@ import xml.etree.ElementTree as et
 import pandas as pd
 from tqdm.auto import tqdm
 
-data_path = Path('../VOCdevkit/VOC2012')
-annot_path = data_path / "Annotations"
-annot_list = list(annot_path.glob('./*.xml'))
+from params import DATA_PATH, ANNOT_PATH
+
 
 df = pd.DataFrame()
 
+annot_list = list(ANNOT_PATH.glob('./*.xml'))
 tk0 = tqdm(annot_list, total=len(annot_list))
 for annot in tk0:
     xtree = et.parse(annot)
@@ -31,6 +31,9 @@ for annot in tk0:
             temp = {}
             for elem in node:
                 temp[elem.tag] = elem.text
+            break
+
+    for node in xroot:
         if node.tag == 'object':
             
             obj_class = node.find('name').text
@@ -48,4 +51,4 @@ for annot in tk0:
          pd.DataFrame.from_dict(xml_dict)],
          axis=0)
 
-df.to_csv(str(data_path) + '/bbox_dataframe.csv', index=False)
+df.to_csv(str(DATA_PATH) + '/bbox_dataframe.csv', index=False)
