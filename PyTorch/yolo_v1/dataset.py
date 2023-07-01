@@ -20,6 +20,9 @@ class VOCDataset(Dataset):
     Pascal VOC dataset
     """
     def __init__(self, img_path, label_csv,
+                 use_all=False,
+                 train=True,
+                 fold=0,
                  size=448,
                  transform=None,
                  S=7, B=2, C=20):
@@ -30,6 +33,15 @@ class VOCDataset(Dataset):
             img_path (str): Datapath where image file lives.
             label_csv (str): Csv file path. This file has image id, class, 
                 image size, bounding box informations.
+            use_all (bool): Use all VOC2012 Images or not. If set to False,
+                only use `fold` images. Defaults set to False
+            train (bool): Is dataset for train or validation. If `use_all`
+                is False, Split `fold` images, use 80 % to training 
+                and 20 % for validation. Defaults to True.
+            fold (int): Fold number. If `use_all` is True, Use `fold` images
+                to validation and other images to training.
+                Otherwise, Use `fold` images both training and validation.
+                Defaults to 0.
             size (int): Target image size. Defaults to 448.
             transform (albumentations transforms): Apply transforms to images.
                 Defaults to None, which apply Resize to `size`, Normalization
@@ -38,8 +50,29 @@ class VOCDataset(Dataset):
             B (int): Number of boxes used for prediction. Defaults to 2.
             C (int): Classes in Pascal VOC. Defaults to 20.
         """
-        self.img_list = list(Path(img_path).glob('./*jpg'))
+        self.img_path = img_path
         self.label_csv = pd.read_csv(label_csv)
+        self.train = train
+
+        if use_all:
+            if self.train:
+                self.df = self.label_csv[self.label_csv['fold']!=fold]
+                self.df = self.df.reset_index(drop=True)
+            else:
+                self.df = self.label_csv[self.label_csv['fold']==fold]
+                self.df = self.df.reset_index(drop=True)
+        else:
+            self.df = self.label_csv[self.label_csv['fold']==fold]
+            if self.train:
+                self.df = self.df[self.df['train']]
+                self.df = self.df.reset_index(drop=True)
+            else:
+                self.df = self.df[~self.df['train']]
+                self.df = self.df.reset_index(drop=True)
+                
+            self.img_list = list(Path(img_path).glob('./*jpg'))
+            
+        self.fold = fold
         self.size = size
         self.transform = transform
         self.S = S
@@ -48,7 +81,7 @@ class VOCDataset(Dataset):
 
 
     def __len__(self):
-        return len(self.img_list)
+        return len(self.df)
     
 
     def __getitem__(self, index):
@@ -59,7 +92,7 @@ class VOCDataset(Dataset):
             image (torch.Tensor[channels, height, width])
             label_matrix (torch.Tensor[S, S, C + B*5])
         """
-        img_path = self.img_list[index]
+        img_path = self.img_path / str(self.df.loc[index, 'id'] + '.jpg')
         image, bboxes, class_ids = self._data_gen(img_path)
 
         if self.transform is not None:
