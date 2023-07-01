@@ -75,7 +75,7 @@ for i in range(10):
     for tr_idx, vl_idx in sgkf.split(X=temp_df,
                                      y=temp_df['class'],
                                      groups=temp_df['id'],):
-        temp_df.loc[vl_idx, 'train'] = True
+        temp_df.loc[tr_idx, 'train'] = True
         break
 
     df_with_train = pd.concat(
