@@ -100,3 +100,21 @@ class YoloV1(nn.Module):
             nn.LeakyReLU(0.1),
             nn.Linear(4096, S * S * (B*5 + C)),
         )
+    
+
+def define_optimizer(optimizer_name, *param, **kwargs):
+    """
+    Define pytorch optimizer associated to the name.
+
+    Args:
+        name (str): pytorch optimizer name
+    
+    Return:
+        (torch.optim)
+    """
+    try:
+        optimizer = getattr(torch.optim, optimizer_name)(*param, **kwargs)
+    except AttributeError:
+        raise NotImplementedError
+    
+    return optimizer
