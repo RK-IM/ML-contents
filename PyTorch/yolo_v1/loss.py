@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from utils import intersection_over_union
+from metrics import intersection_over_union
 
 
 class YoloLoss(nn.Module):
@@ -32,10 +32,10 @@ class YoloLoss(nn.Module):
 
         iou_pred1 = intersection_over_union(pred[..., 21:25],
                                             true[..., 21:25], 
-                                            format="midpoint")
+                                            box_format="midpoint")
         iou_pred2 = intersection_over_union(pred[..., 26:30], 
                                             true[..., 21:25], 
-                                            format="midpoint")
+                                            box_format="midpoint")
         
         ious = torch.cat([iou_pred1.unsqueeze(0), 
                           iou_pred2.unsqueeze(0)], 
@@ -58,7 +58,7 @@ class YoloLoss(nn.Module):
 
         # Apply square root to width and height
         box_preds[..., 2:4] = torch.sign(box_preds[..., 2:4]) \
-            * torch.sqrt(torch.abs(box_preds[..., 2:4]))
+            * torch.sqrt(torch.abs(box_preds[..., 2:4] + 1e-6))
         box_true[..., 2:4] = torch.sqrt(box_true[..., 2:4])
 
         box_loss = self.mse(
@@ -78,7 +78,7 @@ class YoloLoss(nn.Module):
         obj_loss = self.mse(
             # [(batch_size * S * S), 1]
             torch.flatten(box_exist * obj_preds, end_dim=-2),
-            torch.flatten(box_exist, end_dim=-2)
+            torch.flatten(box_exist * true[..., 20:21], end_dim=-2)
         )
 
 
