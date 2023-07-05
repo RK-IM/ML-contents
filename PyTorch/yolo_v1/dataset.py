@@ -56,19 +56,16 @@ class VOCDataset(Dataset):
 
         if use_all:
             if self.train:
-                self.df = self.label_csv[self.label_csv['fold']!=fold]
-                self.df = self.df.reset_index(drop=True)
+                self.ids = self.label_csv[self.label_csv['fold']!=fold]['id'].unique()
             else:
-                self.df = self.label_csv[self.label_csv['fold']==fold]
-                self.df = self.df.reset_index(drop=True)
+                self.ids = self.label_csv[self.label_csv['fold']==fold]['id'].unique()
+                
         else:
             self.df = self.label_csv[self.label_csv['fold']==fold]
             if self.train:
-                self.df = self.df[self.df['train']]
-                self.df = self.df.reset_index(drop=True)
+                self.ids = self.df[self.df['train']]['id'].unique()
             else:
-                self.df = self.df[~self.df['train']]
-                self.df = self.df.reset_index(drop=True)
+                self.ids = self.df[~self.df['train']]['id'].unique()
                 
             self.img_list = list(Path(img_path).glob('./*jpg'))
             
@@ -81,7 +78,7 @@ class VOCDataset(Dataset):
 
 
     def __len__(self):
-        return len(self.df)
+        return len(self.ids)
     
 
     def __getitem__(self, index):
@@ -180,12 +177,12 @@ class VOCDataset(Dataset):
             w = (xmax - xmin) * self.S
             h = (ymax - ymin) * self.S
 
-            label_matrix[x_grid, y_grid, 20] = 1
+            label_matrix[y_grid, x_grid, 20] = 1
             box_coordinates = torch.tensor(
                 [x_pos, y_pos, w, h]
             )
-            label_matrix[x_grid, y_grid, 21:25] = box_coordinates
-            label_matrix[x_grid, y_grid, class_id] = 1
+            label_matrix[y_grid, x_grid, 21:25] = box_coordinates
+            label_matrix[y_grid, x_grid, class_id] = 1
         
         return label_matrix
 
