@@ -60,9 +60,9 @@ def intersection_over_union(box_preds, box_labels, box_format="corners"):
 
 
 def non_max_suppression(bboxes, 
-                        confidence_threshold=0.4,
+                        confidence_threshold=0.3,
                         iou_threshold=0.5,
-                        box_format='corners'):
+                        box_format='midpoint'):
     """
     Calculate IOU and drop boxes which has same class as reference boundary box
     and lower confidence. High IOU with same class can be interpreted  as 
@@ -72,7 +72,7 @@ def non_max_suppression(bboxes,
         bboxes (list, [[class_id, confidence, coordinates(4)], [], ...]):
             boundary boxes.
         confidence_threshold (float): Boundary box with confidence higher than 
-            this value will only selected. Defaults to 0.4.
+            this value will only selected. Defaults to 0.3.
         iou_threshold (float): If IOU between two boxes which has same class
             is higher than this value, one with lower confidence will be dropped.
         box_format (str): coordinate format of boundary box.
@@ -105,7 +105,7 @@ def non_max_suppression(bboxes,
 
 def mean_average_precision(pred_boxes,
                            true_boxes,
-                           iou_threshold=0.4,
+                           iou_threshold=0.5,
                            box_format="midpoint",
                            num_class=20):
     """
@@ -118,7 +118,7 @@ def mean_average_precision(pred_boxes,
             Ground truth boundary box.
         iou_threshold (float): Select pred_box which has higher iou than
             this value respects to ground truth boundary box.
-            Defaults to 0.4.
+            Defaults to 0.5.
         box_format (str): coordinate format of boundary box.
             'midpoint': x, y, width, height
             'corners': x_min, y_min, x_max, y_max
