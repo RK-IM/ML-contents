@@ -28,3 +28,11 @@ DATA_PATH = Path('../VOCdevkit/VOC2012/')
 IMAGE_PATH = DATA_PATH / 'JPEGImages'
 ANNOT_PATH = DATA_PATH / 'Annotations'
 LABEL_CSV = DATA_PATH / 'bbox_dataframe.csv'
+LOG_DIR = './logs/'
+
+MEAN = [0.485, 0.456, 0.406]
+STD = [0.229, 0.224, 0.225]
+
+S = 7
+B = 2
+C = 20
