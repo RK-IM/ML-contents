@@ -1,12 +1,11 @@
 입력 문장에서 분위기나 특징을 찾아내 그에 맞는 식당을 추천해주는 코드입니다.  
-구체적인 진행 과정은 [노션 페이지](https://goofy-umbrella-d29.notion.site/88de86bc720f40159cf691e813710c56)에 있습니다.
 
 ## 전체   
-<img src="https://github.com/RK-IM/Projects/blob/main/CP2/images/pipeline.png">
+<img src="https://github.com/RK-IM/ML-contents/blob/main/Projects/restaurant_recommendation/images/pipeline.png">
 
 
 ## 출력 결과  
-<img src="https://github.com/RK-IM/Projects/blob/main/CP2/images/sample_result.png" height="400">
+<img src="https://github.com/RK-IM/ML-contents/blob/main/Projects/restaurant_recommendation/images/sample_result.png" height="400">
 
 
 결과 실행은 sbert_module 안에 있는 evaluate.py 파일을 통해 할 수 있습니다. 
