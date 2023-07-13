@@ -1,12 +1,11 @@
-import torch
-import torch.nn as nn
-import torch.optim as optim
 from torch.utils.data import DataLoader
 
-from dataset import VOCDataset, train_tfms, inference_tfms
-from model import YoloV1, define_optimizer
+from dataset import VOCDataset, train_tfms
+from model import YoloV1
 from loss import YoloLoss
-from train import Trainer, StepSchdulerwithWarmup
+from train import Trainer
+from optim import define_optimizer, StepLRwithWarmup, ExponentialLRwithWarmup
+from transformers import get_cosine_schedule_with_warmup
 from params import *
 
 
@@ -61,12 +60,23 @@ def main(config):
     optimizer = define_optimizer(config.optimizer,
                                  model.parameters(),
                                  **kwargs)
-    scheduler = StepSchdulerwithWarmup(optimizer,
-                                       total_step=len(train_loader)*135,
-                                       warmup_rate=config.warmup_rate,
-                                       dataloader=train_loader,
-                                       total_epochs=config.epochs)
+    # scheduler = StepLRwithWarmup(optimizer,
+    #                              epochs=config.epochs,
+    #                              iter_per_epoch=len(train_loader),
+    #                              warmup_rate=config.warmup_rate)
+    scheduler = ExponentialLRwithWarmup(optimizer,
+                                        epochs=config.epochs,
+                                        iter_per_epoch=len(train_loader),
+                                        warmup_rate=config.warmup_rate)
 
+    # training_steps = len(train_loader) * config.epochs
+    # warmup_steps = int(config.warmup_rate * training_steps)
+    # scheduler = get_cosine_schedule_with_warmup(
+    #     optimizer,
+    #     num_warmup_steps=warmup_steps,
+    #     num_training_steps=training_steps
+    #     )
+    
     trainer = Trainer(config,
                       train_loader,
                       valid_loader,

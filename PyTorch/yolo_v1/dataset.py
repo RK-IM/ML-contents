@@ -89,7 +89,7 @@ class VOCDataset(Dataset):
             image (torch.Tensor[channels, height, width])
             label_matrix (torch.Tensor[S, S, C + B*5])
         """
-        img_path = self.img_path / str(self.df.loc[index, 'id'] + '.jpg')
+        img_path = self.img_path / (self.ids[index] + '.jpg')
         image, bboxes, class_ids = self._data_gen(img_path)
 
         if self.transform is not None:
@@ -185,7 +185,6 @@ class VOCDataset(Dataset):
             label_matrix[y_grid, x_grid, class_id] = 1
         
         return label_matrix
-
 
 
 def train_tfms(size=448):

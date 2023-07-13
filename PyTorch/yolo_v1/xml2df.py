@@ -5,7 +5,7 @@ import pandas as pd
 from sklearn.model_selection import StratifiedGroupKFold
 from tqdm.auto import tqdm
 
-from params import DATA_PATH, ANNOT_PATH
+from params import DATA_PATH, ANNOT_PATH, NB_SPLITS, VALID_RATE
 
 
 df = pd.DataFrame()
@@ -53,11 +53,11 @@ for annot in tk0:
          axis=0)
 
 
-print("[INFO] Split dataset into 10 folds...")
+print(f"[INFO] Split dataset into {NB_SPLITS} folds...")
 df = df.reset_index(drop=True)
 df['fold'] = -1
 
-sgkf = StratifiedGroupKFold(n_splits=10)
+sgkf = StratifiedGroupKFold(n_splits=NB_SPLITS)
 for i, (tr_idx, vl_idx) in enumerate(sgkf.split(df, 
                                                 y=df['class'], 
                                                 groups=df['id'])):
@@ -66,12 +66,12 @@ print("[INFO] Done!")
 
 print("[INFO] Split each fold into training and validation set...")
 df_with_train = pd.DataFrame()
-for i in range(10):
+for i in range(NB_SPLITS):
     temp_df = df.query("fold==@i")
     temp_df = temp_df.reset_index(drop=True)
     temp_df['train'] = False
 
-    sgkf = StratifiedGroupKFold(n_splits=5)
+    sgkf = StratifiedGroupKFold(n_splits=int(1/VALID_RATE+1e-6))
     for tr_idx, vl_idx in sgkf.split(X=temp_df,
                                      y=temp_df['class'],
                                      groups=temp_df['id'],):

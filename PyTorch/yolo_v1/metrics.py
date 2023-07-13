@@ -1,6 +1,4 @@
-import cv2
 import torch
-import numpy as np
 from collections import Counter
 
 from params import S, B, C
@@ -75,6 +73,7 @@ def non_max_suppression(bboxes,
             this value will only selected. Defaults to 0.3.
         iou_threshold (float): If IOU between two boxes which has same class
             is higher than this value, one with lower confidence will be dropped.
+            Defaults to 0.5.
         box_format (str): coordinate format of boundary box.
             'midpoint': x, y, width, height
             'corners': x_min, y_min, x_max, y_max
@@ -90,13 +89,12 @@ def non_max_suppression(bboxes,
     while bboxes:
         chosen_box = bboxes.pop()
         bboxes = [box for box in bboxes
-                  if (box[0] != chosen_box[0]
+                  if box[0] != chosen_box[0]
                       or intersection_over_union(
-                        torch.tensor(box[2:]),
                         torch.tensor(chosen_box[2:]),
+                        torch.tensor(box[2:]),
                         box_format=box_format
                     ) < iou_threshold
-                )
             ]
         bboxes_after_nms.append(chosen_box)
     
@@ -129,7 +127,6 @@ def mean_average_precision(pred_boxes,
         (torch.Tensor(float)): mean average precision
     """
     average_precision = []
-    epsilon = 1e-6
 
     # individual classes
     for c in range(num_class):

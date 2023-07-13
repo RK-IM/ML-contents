@@ -30,6 +30,9 @@ ANNOT_PATH = DATA_PATH / 'Annotations'
 LABEL_CSV = DATA_PATH / 'bbox_dataframe.csv'
 LOG_DIR = './logs/'
 
+NB_SPLITS = 5
+VALID_RATE = 0.2
+
 MEAN = [0.485, 0.456, 0.406]
 STD = [0.229, 0.224, 0.225]
 
