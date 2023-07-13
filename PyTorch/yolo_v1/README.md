@@ -58,7 +58,7 @@ They use Sum-squared error to A) center of boundary box, B) width and height of 
 The model has trained for 135 epochs with batch size of 64. Use SGD optimizer, momentum of 0.9 and weight decay of 0.0005. Learning schedule is rasing $10^{-3}$ to $10^{-2}$ and keep training with $10^{-2}$ for 75 epochs, $10^{-3}$ for 30 epochs, and another 30 epochs with $10^{-4}$.
 
 However, this implementation, uses the `Adam` optimizer with learning rate of 2e-5, as SGD with momentum somtimes gradient explodes or learns too slowly. So learning rate increases from 1/10 of 2e-5 to 2e-5 and decreases linearly every iteration.  
-Limitation of resources and time, I use `Stratified Group KFold` from the sklearn library to split the VOC2012 dataset into `10 folds`. And then use only `one fold`, split again 80% for training and 20% for validation, also using Stratified Group KFold. The reason for using stratified group kfold is that the boundary boxes on same image must be in the same fold and the object classes are not balanced. Using this subset, training for `100` epochs.  
+Limitation of resources and time, I use `Stratified Group KFold` from the sklearn library to split the VOC2012 dataset into `10 folds`. And then use only `one fold`, split again 80% for training and 20% for validation, also using Stratified Group KFold. The reason for using stratified group kfold is that the boundary boxes on same image must be in the same fold and the object classes are not balanced. Using this subset, training for `135` epochs.  
 
 The total time to train the Yolo v1 model using these parameters and the RTX 3060 was about 2 hours. The training and validation steps only take 40~50 seconds but the mAP calculation takes about 10 seconds. Since it is an early model of yolo, it is unavoidable that the speed is slow, but it can be optimized for taking a long time to calculate mAP.  
 
@@ -68,7 +68,7 @@ The total time to train the Yolo v1 model using these parameters and the RTX 306
 
 The validation loss and mAP are much better than training. This may be due to data imbalance. If you look at the classes of objects included in the images, there is a class that contains only a few tens of thousands of photos, with 'people' class occupying the largest part. The effect must have been greater because it was trained with only a small amount of data. Even if you look at the output example, the position is matched to some extent, but the class is predicted as a person.  
 
-![image](https://github.com/RK-IM/ML-contents/assets/94027045/6a9438a1-252d-4f5a-a719-12fb8ae2aec8)
+![image](https://github.com/RK-IM/ML-contents/assets/94027045/6b9bee1e-6f5f-4e9f-8994-a50df96f0499)
 
 
 Reference:
