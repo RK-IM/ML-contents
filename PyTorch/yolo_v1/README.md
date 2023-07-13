@@ -64,7 +64,7 @@ The total time to train the Yolo v1 model using these parameters and the RTX 306
 
 ## Results
 
-![image](https://github.com/RK-IM/ML-contents/assets/94027045/9c445c0e-b537-402e-8bf2-962c96e65c5a)  
+![image](https://github.com/RK-IM/ML-contents/assets/94027045/e4755826-a0e4-4b91-b04c-8f59ce26eb62)
 
 The validation loss and mAP are much better than training. This may be due to data imbalance. If you look at the classes of objects included in the images, there is a class that contains only a few tens of thousands of photos, with 'people' class occupying the largest part. The effect must have been greater because it was trained with only a small amount of data. Even if you look at the output example, the position is matched to some extent, but the class is predicted as a person.  
 
