@@ -2,7 +2,7 @@
 
 Numpy만으로 간단한 파이토치 스타일의 MLP를 구현한 프로젝트입니다.
 
-자세한 설명은 [How_MLP_works.ipynb](https://github.com/RK-IM/Projects/blob/main/How_MLP_works/How_MLP_works.ipynb) 파일에 적혀있습니다.  
+자세한 설명은 [How_MLP_works.ipynb](https://github.com/RK-IM/ML-contents/blob/main/Projects/How_MLP_works/How_MLP_works.ipynb) 파일에 적혀있습니다.  
 
 ## 과정
 
