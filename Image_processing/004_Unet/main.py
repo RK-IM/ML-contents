@@ -6,17 +6,16 @@ from torch.utils.data import DataLoader
 from dataset import DSBDataset
 from model import Unet
 from train import Trainer
-from params import TRAIN_PATH
 
 
 def main(config):
-    train_ds = DSBDataset(path=TRAIN_PATH,
+    train_ds = DSBDataset(path=config.data_path,
                           train=True,
                           seed=config.seed,
                           height=config.height,
                           width=config.width)
     
-    valid_ds = DSBDataset(path=TRAIN_PATH,
+    valid_ds = DSBDataset(path=config.data_path,
                           train=False,
                           seed=config.seed,
                           height=config.height,
