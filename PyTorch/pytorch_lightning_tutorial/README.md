@@ -23,13 +23,15 @@ pytorch lightning에서 efficientdet 사용법입니다. EfficientDet은 [rwight
 │  │  ├─ ... 
 │  └─ train_solution_bounding_boxes (1).csv  # csv file with boundary boxes
 │  
-└─ tb_logs/                                  # Log files
-   └─ cars_detect/
-      ├─ version_0/
-      │  ├─ checkpoints/                     # trained model checkpoints
-      │  │  ├─ .ckpt
-      │  │  ├─ ...
-      │  ├─ tfevents                         # training results
-      │  └─ hparams.yaml                     # hyperparameters
-      ├─ ...
+├─ tb_logs/                                  # Log files
+│  └─ cars_detect/
+│     ├─ version_0/
+│     │  ├─ checkpoints/                     # trained model checkpoints
+│     │  │  ├─ .ckpt
+│     │  │  ├─ ...
+│     │  ├─ tfevents                         # training results
+│     │  └─ hparams.yaml                     # hyperparameters
+│     ├─ ...
+│
+└─ effdet/                                   # efficientdet module
 ```
