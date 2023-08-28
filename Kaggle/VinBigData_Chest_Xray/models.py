@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append("../timm-efficientdet-pytorch")
 
 import os
@@ -22,19 +23,20 @@ from dataset import pred_transforms
 from params import TEST_PATH
 
 
-#------------#
+# ------------#
 # Classifier #
-#------------#
+# ------------#
 class XrayClassifier(pl.LightningModule):
-    def __init__(self, 
-                 model_name="tf_efficientnet_b0",
-                 pretrained=True, 
-                 num_classes=1,
-                 lr=1e-3,
-                 weight_decay=1e-5,
-                 gamma=0.99,
-                 max_epochs=10,
-                 ):
+    def __init__(
+        self,
+        model_name="tf_efficientnet_b0",
+        pretrained=True,
+        num_classes=1,
+        lr=1e-3,
+        weight_decay=1e-5,
+        gamma=0.99,
+        max_epochs=10,
+    ):
         super().__init__()
         self.model_name = model_name
         self.pretrained = pretrained
@@ -45,9 +47,11 @@ class XrayClassifier(pl.LightningModule):
         self.max_epochs = max_epochs
 
         self.model = self.get_model()
-        self.metrics = torch.nn.ModuleDict( # without wrapping with ModuleDict, 
+        self.metrics = torch.nn.ModuleDict(  # without wrapping with ModuleDict,
             {
-                "accuracy": Accuracy(task="binary"), # torchmetric throw device mismatch error
+                "accuracy": Accuracy(
+                    task="binary"
+                ),  # torchmetric throw device mismatch error
                 "auroc": AUROC(task="binary"),
             }
         )
@@ -65,11 +69,10 @@ class XrayClassifier(pl.LightningModule):
         }
         self.predict_step_outputs = []
 
-
-    def forward(self, images): # inference action
+    def forward(self, images):  # inference action
         print(images)
         return torch.sigmoid(self.model(images))
-    
+
     # Step
     def _common_step(self, batch, stage):
         images, labels = batch
@@ -79,55 +82,68 @@ class XrayClassifier(pl.LightningModule):
         loss = F.binary_cross_entropy_with_logits(outs, labels.float())
 
         self.step_outputs[f"{stage}_loss"].append(loss)
-        self.step_outputs[f"{stage}_accuracy"].append(self.metrics["accuracy"](preds, labels))
+        self.step_outputs[f"{stage}_accuracy"].append(
+            self.metrics["accuracy"](preds, labels)
+        )
 
         self.epoch_outputs[f"{stage}_preds"].extend(preds)
         self.epoch_outputs[f"{stage}_labels"].extend(labels)
 
         return loss
 
-    def training_step(self, batch, batch_idx): # model output sigmoid not applied
+    def training_step(self, batch, batch_idx):  # model output sigmoid not applied
         return self._common_step(batch, stage="train")
-    
+
     def validation_step(self, batch, batch_idx):
         return self._common_step(batch, stage="val")
 
     # Epoch
     def _common_epoch_end(self, stage):
-        self.epoch_outputs[f"{stage}_preds"] = torch.stack(self.epoch_outputs[f"{stage}_preds"])
-        self.epoch_outputs[f"{stage}_labels"] = torch.stack(self.epoch_outputs[f"{stage}_labels"])
-        
-        loss = torch.mean(torch.tensor([loss for loss in self.step_outputs[f"{stage}_loss"]]))
-        accuracy = torch.mean(torch.tensor([acc for acc in self.step_outputs[f"{stage}_accuracy"]]))
-        auroc = self.metrics["auroc"](self.epoch_outputs[f"{stage}_preds"], 
-                                      self.epoch_outputs[f"{stage}_labels"])
+        self.epoch_outputs[f"{stage}_preds"] = torch.stack(
+            self.epoch_outputs[f"{stage}_preds"]
+        )
+        self.epoch_outputs[f"{stage}_labels"] = torch.stack(
+            self.epoch_outputs[f"{stage}_labels"]
+        )
+
+        loss = torch.mean(
+            torch.tensor([loss for loss in self.step_outputs[f"{stage}_loss"]])
+        )
+        accuracy = torch.mean(
+            torch.tensor([acc for acc in self.step_outputs[f"{stage}_accuracy"]])
+        )
+        auroc = self.metrics["auroc"](
+            self.epoch_outputs[f"{stage}_preds"], self.epoch_outputs[f"{stage}_labels"]
+        )
 
         for step_key, epoch_key in zip(["loss", "accuracy"], ["preds", "labels"]):
             self.step_outputs[f"{stage}_{step_key}"].clear()
             self.epoch_outputs[f"{stage}_{epoch_key}"] = []
-            
+
         self.log_dict(
             {
                 f"{stage}_loss": loss,
                 f"{stage}_accuracy": accuracy,
                 f"{stage}_auroc": auroc,
             },
-            on_step=False, on_epoch=True, prog_bar=True
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
         )
 
     def on_train_epoch_end(self):
         return self._common_epoch_end(stage="train")
-    
+
     def on_validation_epoch_end(self):
         return self._common_epoch_end(stage="val")
-    
+
     # Predict
     def predict_step(self, batch, batch_idx):
         images, _, image_name = batch
         outs = torch.sigmoid(self.model(images))
         self.predict_step_outputs.append([outs, image_name])
         return outs
-    
+
     def on_predict_epoch_end(self):
         results = self.predict_step_outputs
         ids = []
@@ -135,7 +151,7 @@ class XrayClassifier(pl.LightningModule):
         for i in range(len(results)):
             ids.extend(results[i][1])
             vals.extend(results[i][0].cpu())
-        
+
         results = dict(zip(ids, vals))
         results = {k.split(".")[0]: v.item() for k, v in results.items()}
         self.predict_result = results
@@ -145,37 +161,39 @@ class XrayClassifier(pl.LightningModule):
         return timm.create_model(
             model_name=self.model_name,
             pretrained=self.pretrained,
-            num_classes=self.num_classes
+            num_classes=self.num_classes,
         )
-    
+
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(self.model.parameters(),
-                                      lr=self.lr,
-                                      weight_decay=self.weight_decay)
-        
+        optimizer = torch.optim.AdamW(
+            self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay
+        )
+
         scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=self.gamma)
         return [optimizer], [scheduler]
 
 
-#----------#
+# ----------#
 # Detector #
-#----------#
+# ----------#
 class XrayDetector(pl.LightningModule):
-    def __init__(self,
-                 num_classes=14,
-                 image_size=512,
-                 prediction_confidence_threshold=0.3,
-                 learning_rate=2e-4,
-                 weight_decay=1e-5,
-                 gamma=0.99,
-                 wbf_iou_threshold=0.4,
-                 inference_transforms=pred_transforms(),
-                 architecture="tf_efficientnet_b0"):
+    def __init__(
+        self,
+        num_classes=14,
+        image_size=512,
+        prediction_confidence_threshold=0.3,
+        learning_rate=2e-4,
+        weight_decay=1e-5,
+        gamma=0.99,
+        wbf_iou_threshold=0.4,
+        inference_transforms=pred_transforms(),
+        architecture="tf_efficientnet_b0",
+    ):
         super().__init__()
         self.num_classes = num_classes
         self.img_size = image_size
         self.architecture = architecture
-        
+
         self.prediction_confidence_threshold = prediction_confidence_threshold
         self.lr = learning_rate
         self.weight_decay = weight_decay
@@ -184,19 +202,20 @@ class XrayDetector(pl.LightningModule):
         self.inference_transforms = inference_transforms
 
         self.model = self.get_model(
-            num_classes=self.num_classes, image_size=self.img_size, architecture=self.architecture
+            num_classes=self.num_classes,
+            image_size=self.img_size,
+            architecture=self.architecture,
         )
 
         self.validation_step_outputs = []
         self.predict_step_outputs = []
 
-
     def forward(self, images, targets):
         return self.model(images, targets)
-    
+
     def training_step(self, batch, batch_idx):
         images, annotations, _ = batch
-        losses = self.model(images, annotations) # loss dict
+        losses = self.model(images, annotations)  # loss dict
 
         self.log_dict(
             {
@@ -204,15 +223,18 @@ class XrayDetector(pl.LightningModule):
                 "train_class_loss": losses["class_loss"],
                 "train_box_loss": losses["box_loss"],
             },
-            on_step=True, on_epoch=True, prog_bar=True, logger=tuple
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+            logger=tuple,
         )
 
         return losses["loss"]
-    
+
     def validation_step(self, batch, batch_idx):
         images, annotations, targets = batch
-        outputs = self.model(images, annotations) # loss dict + detection
-        detections = outputs["detections"] # [bboxes[4], score, classes]
+        outputs = self.model(images, annotations)  # loss dict + detection
+        detections = outputs["detections"]  # [bboxes[4], score, classes]
 
         batch_detections = {
             "predictions": detections,
@@ -225,7 +247,11 @@ class XrayDetector(pl.LightningModule):
                 "valid_class_loss": outputs["class_loss"],
                 "valid_box_loss": outputs["box_loss"],
             },
-            on_step=True, on_epoch=True, prog_bar=True, logger=True, sync_dist=True
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+            logger=True,
+            sync_dist=True,
         )
 
         outs = {"loss": outputs["loss"], "batch_predictions": batch_detections}
@@ -233,7 +259,7 @@ class XrayDetector(pl.LightningModule):
         self.validation_step_outputs.append(outs)
 
         return outs
-    
+
     def on_validation_epoch_end(self):
         (
             pred_labels,
@@ -304,13 +330,12 @@ class XrayDetector(pl.LightningModule):
 
     def predict_sample(self, image):
         if len(image.shape) == 2:
-            image = image = np.stack([image]*3).transpose(1, 2, 0)
+            image = image = np.stack([image] * 3).transpose(1, 2, 0)
         image_size = image.shape[:2]
         image_tfmed = self.inference_tfms(image=image)["image"]
         image_tfmed = image_tfmed.unsqueeze(0)
 
         return self._run_inference(image_tfmed, image_size)
-    
 
     def _run_inference(self, images, image_sizes):
         dummy_targets = self._create_dummy_inference_targets(num_images=images.shape[0])
@@ -326,7 +351,6 @@ class XrayDetector(pl.LightningModule):
         scaled_bboxes = self.__rescale_bboxes(pred_bboxes, image_sizes)
 
         return scaled_bboxes, pred_confidences, pred_labels
-    
 
     def _create_dummy_inference_targets(self, num_images):
         return {
@@ -340,7 +364,6 @@ class XrayDetector(pl.LightningModule):
             ).float(),
             "img_scale": torch.ones(num_images, device=self.device).float(),
         }
-    
 
     def post_process_detections(self, detections):
         predictions = []
@@ -351,7 +374,6 @@ class XrayDetector(pl.LightningModule):
             predictions, image_size=self.img_size, iou_thr=self.wbf_iou_threshold
         )
         return pred_bboxes, pred_confidences, pred_labels
-    
 
     def _post_process_single_batch(self, detections):
         boxes = detections.detach().cpu()[:, :4]
@@ -364,7 +386,6 @@ class XrayDetector(pl.LightningModule):
             "scores": scores[candidates],  # [batch_size, confidence_score]
             "classes": classes[candidates],
         }  # [batch_size, classes]
-    
 
     def apply_wbf(self, predictions, image_size, iou_thr=0.4, skip_box_thr=0.0001):
         # ZFTurbo's wbf expects normalized box coordinates
@@ -374,9 +395,7 @@ class XrayDetector(pl.LightningModule):
         for prediction in predictions:
             boxes_list = prediction["boxes"] / image_size
             if len(boxes_list) == 0:
-                wbf_boxes.append(
-                    np.zeros((1, 4)),
-                )
+                wbf_boxes.append(np.zeros((1, 4)),)
                 wbf_scores.append(np.array([0.0]))
                 wbf_labels.append(np.array([0.0]))
                 continue
@@ -421,7 +440,6 @@ class XrayDetector(pl.LightningModule):
             else:
                 scaled_bboxes.append(bboxes)
         return scaled_bboxes
-    
 
     def aggregate_val_outputs(self):
         detections = torch.cat(
@@ -442,19 +460,16 @@ class XrayDetector(pl.LightningModule):
 
         return pred_labels, pred_bboxes, pred_confidences, targets
 
-
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(self.model.parameters(),
-                                      lr=self.lr,
-                                      weight_decay=self.weight_decay)
+        optimizer = torch.optim.AdamW(
+            self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay
+        )
         scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=self.gamma)
         return [optimizer], [scheduler]
 
-
-    def get_model(self,
-                  num_classes=14,
-                  image_size=512,
-                  architecture="tf_efficientnet_b0"):
+    def get_model(
+        self, num_classes=14, image_size=512, architecture="tf_efficientnet_b0"
+    ):
         # New element to efficientdet_mode_param_dict
         # backbone name should be in timm.list_models()
         efficientdet_model_param_dict[architecture] = dict(
@@ -466,7 +481,7 @@ class XrayDetector(pl.LightningModule):
         )
 
         # get effdet config and overwirte with above efficientdet_model_param's model_name
-        config = get_efficientdet_config(architecture) 
+        config = get_efficientdet_config(architecture)
         config.update({"num_classes": num_classes})
         config.update({"image_size": (image_size, image_size)})
 
@@ -474,9 +489,6 @@ class XrayDetector(pl.LightningModule):
         net = EfficientDet(config, pretrained_backbone=True)
         # HeadNet is basically a custom head that takes the final outputs of the BiFPN network
         # and either returns a class or bounding box coordinates
-        net.class_net = HeadNet(
-            config,
-            num_outputs=config.num_classes
-        )
+        net.class_net = HeadNet(config, num_outputs=config.num_classes)
         # @train: return losses, else return detections
         return DetBenchTrain(net)

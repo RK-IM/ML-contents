@@ -1,4 +1,4 @@
-from sklearn.model_selection import StratifiedKFold, StratifiedGroupKFold
+from sklearn.model_selection import StratifiedKFold
 
 import torch
 from torch.utils.data import DataLoader, Subset
@@ -19,16 +19,16 @@ from dataset import (
 # Classify
 class XrayClassifyDataModule(pl.LightningDataModule):
     def __init__(
-            self,
-            adaptor,
-            # pred_adaptor,
-            train_transforms=train_transforms_clf(),
-            valid_transforms=valid_transforms_clf(),
-            # pred_transforms=pred_transforms(),
-            n_splits=5,
-            fold_index=0,
-            batch_size=8,
-            num_workers=4,
+        self,
+        adaptor,
+        # pred_adaptor,
+        train_transforms=train_transforms_clf(),
+        valid_transforms=valid_transforms_clf(),
+        # pred_transforms=pred_transforms(),
+        n_splits=5,
+        fold_index=0,
+        batch_size=8,
+        num_workers=4,
     ):
         super().__init__()
         self.adaptor = adaptor
@@ -41,15 +41,10 @@ class XrayClassifyDataModule(pl.LightningDataModule):
         self.fold_index = fold_index
         self.batch_size = batch_size
         self.num_workers = num_workers
-    
 
     def setup(self, stage=None):
-        self.train_dataset = XrayClassifyDataset(
-            self.adaptor, self.train_tfms
-        )
-        self.valid_dataset = XrayClassifyDataset(
-            self.adaptor, self.valid_tfms
-        )
+        self.train_dataset = XrayClassifyDataset(self.adaptor, self.train_tfms)
+        self.valid_dataset = XrayClassifyDataset(self.adaptor, self.valid_tfms)
         # self.pred_dataset = XrayInferenceDataset(
         #     self.pred_adaptor, self.pred_tfms
         # )
@@ -61,7 +56,6 @@ class XrayClassifyDataModule(pl.LightningDataModule):
         self.train_dataset = Subset(self.train_dataset, self.train_index)
         self.valid_dataset = Subset(self.valid_dataset, self.valid_index)
 
-    
     def train_dataloader(self):
         train_loader = DataLoader(
             self.train_dataset,
@@ -71,7 +65,6 @@ class XrayClassifyDataModule(pl.LightningDataModule):
             pin_memory=True,
         )
         return train_loader
-    
 
     def val_dataloader(self):
         valid_loader = DataLoader(
@@ -82,7 +75,7 @@ class XrayClassifyDataModule(pl.LightningDataModule):
             pin_memory=True,
         )
         return valid_loader
-    
+
     # def predict_dataloader(self):
     #     pred_loader = DataLoader(
     #         self.pred_dataset,
@@ -93,31 +86,31 @@ class XrayClassifyDataModule(pl.LightningDataModule):
     #     )
     #     return pred_loader
 
-
     def get_skf_index(self, n_splits=5, fold_index=0):
         skf = StratifiedKFold(n_splits=n_splits)
         train_fold = []
         valid_fold = []
-        for tr_idx, vl_idx in skf.split(self.adaptor.annotations_df,
-                                        self.adaptor.annotations_df["class_id"]):
+        for tr_idx, vl_idx in skf.split(
+            self.adaptor.annotations_df, self.adaptor.annotations_df["class_id"]
+        ):
             train_fold.append(tr_idx)
             valid_fold.append(vl_idx)
-        
+
         return train_fold[fold_index], valid_fold[fold_index]
 
 
 # Detect
 class XrayDetectDataModule(pl.LightningDataModule):
     def __init__(
-            self,
-            train_adaptor,
-            valid_adaptor,
-            train_transforms=train_transforms_det(),
-            valid_transforms=valid_transforms_det(),
-            n_splits=5,
-            fold_index=0,
-            num_workers=4,
-            batch_size=8,
+        self,
+        train_adaptor,
+        valid_adaptor,
+        train_transforms=train_transforms_det(),
+        valid_transforms=valid_transforms_det(),
+        n_splits=5,
+        fold_index=0,
+        num_workers=4,
+        batch_size=8,
     ):
         super().__init__()
         self.train_adaptor = train_adaptor
@@ -132,12 +125,8 @@ class XrayDetectDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
 
     def setup(self, stage=None):
-        self.train_dataset = XrayDetectDataset(
-            self.train_adaptor, self.train_tfms
-        )
-        self.valid_dataset = XrayDetectDataset(
-            self.valid_adaptor, self.valid_tfms
-        )
+        self.train_dataset = XrayDetectDataset(self.train_adaptor, self.train_tfms)
+        self.valid_dataset = XrayDetectDataset(self.valid_adaptor, self.valid_tfms)
 
     def train_dataloader(self):
         train_loader = DataLoader(
@@ -149,7 +138,7 @@ class XrayDetectDataModule(pl.LightningDataModule):
             collate_fn=self.collate_fn,
         )
         return train_loader
-    
+
     def val_dataloader(self):
         valid_loader = DataLoader(
             self.valid_dataset,
@@ -160,35 +149,35 @@ class XrayDetectDataModule(pl.LightningDataModule):
             collate_fn=self.collate_fn,
         )
         return valid_loader
-    
+
     def collate_fn(self, batch):
         images, targets = tuple(zip(*batch))
 
         images = torch.stack(images)
-        bboxes = [target["bboxes"] for target in targets] # diff length
+        bboxes = [target["bboxes"] for target in targets]  # diff length
         labels = [target["labels"] for target in targets]
         img_size = torch.tensor([target["img_size"] for target in targets])
         img_scale = torch.tensor([target["img_scale"] for target in targets])
 
         annotations = {
-            "bbox": bboxes, # for effdet box and loss calculation
-            "cls": labels, # for effdet box and loss calculation
-            "img_size": img_size, # to apply wbf
-            "img_scale": img_scale # to apply wbf
+            "bbox": bboxes,  # for effdet box and loss calculation
+            "cls": labels,  # for effdet box and loss calculation
+            "img_size": img_size,  # to apply wbf
+            "img_scale": img_scale,  # to apply wbf
         }
 
         # annotation: effdet model input / dict[list]
         # target: tfms, aggregate and apply WBF / list[dict]
-        return images, annotations, targets 
+        return images, annotations, targets
 
 
 class XrayInferenceDataModule(pl.LightningDataModule):
     def __init__(
-            self,
-            pred_adaptor,
-            pred_transforms=pred_transforms(),
-            batch_size=8,
-            num_workers=4,
+        self,
+        pred_adaptor,
+        pred_transforms=pred_transforms(),
+        batch_size=8,
+        num_workers=4,
     ):
         super().__init__()
         self.pred_adaptor = pred_adaptor
@@ -200,13 +189,13 @@ class XrayInferenceDataModule(pl.LightningDataModule):
         self.pred_dataset = XrayInferenceDataset(
             self.pred_adaptor, self.pred_transforms
         )
-    
+
     def predict_dataloader(self):
         pred_loader = DataLoader(
             self.pred_dataset,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             shuffle=False,
-            pin_memory=True
+            pin_memory=True,
         )
         return pred_loader
